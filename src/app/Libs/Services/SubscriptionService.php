@@ -98,6 +98,11 @@ class SubscriptionService extends AbstractBaseService
         return $result;
     }
 
+    public function generateEventsReport($page, $perPage, $filters)
+    {
+        return $this->subscriptionEventsModel->generateReport($page, $perPage, $filters);
+    }
+
     private function validateMarketCredentials($osType, $application)
     {
         $marketCredentials = $application->market_credentials;

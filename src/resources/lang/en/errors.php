@@ -9,5 +9,6 @@ return [
     'error_code'                => 'Error code',
     'too_many_requests'         => 'Too many requests',
     'check_subscription_failed' => 'Check subscription failed',
+    'generating_report_failed'  => 'Generating report failed',
     ''                          => '',
 ];

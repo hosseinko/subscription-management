@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\OsTypes;
+use App\Enums\SubscriptionEvents;
+use App\Enums\SubscriptionStatus;
 use App\Libs\Services\SubscriptionService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -16,7 +18,6 @@ class SubscriptionController extends Controller
     {
         $this->subscriptionService = $subscriptionService;
     }
-
 
     public function register(Request $request)
     {
@@ -79,6 +80,40 @@ class SubscriptionController extends Controller
 
     public function getSubscriptionReport(Request $request)
     {
+        try {
+            $this->validate($request, [
+                'status'      => ['nullable', Rule::in(SubscriptionEvents::toArray())],
+                'app_uuid'    => 'nullable|uuid',
+                'device_uuid' => 'nullable|uuid',
+                'os'          => ['nullable', Rule::in(OsTypes::toArray())],
+                'day'         => 'nullable|date_format:Y-m-d',
+                'page'        => 'nullable|numeric|min:1',
+                'per_page'    => 'nullable|numeric|min:1|max:100'
+            ]);
+
+            $filters = $request->only([
+                'status',
+                'app_uuid',
+                'device_uuid',
+                'os',
+                'day',
+            ]);
+
+            $page    = $request->input('page', 1);
+            $perPage = $request->input('per_page', 15);
+
+            $result = $this->subscriptionService->generateEventsReport($page, $perPage, $filters);
+
+            return response()->json($result->toArray());
+
+
+        } catch (\Throwable $exception) {
+            return $this->handleExceptions($exception,
+                __('errors.generating_report_failed'),
+                'report_error.log',
+                $request->all()
+            );
+        }
 
     }
 
