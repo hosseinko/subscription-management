@@ -18,6 +18,7 @@ class CreateSubscriptionsTable extends Migration
             $table->id();
             $table->unsignedBigInteger('application_id');
             $table->unsignedBigInteger('device_id');
+            $table->string('receipt')->nullable()->default(null);
             $table->enum('subscription_status', SubscriptionStatus::toArray())->nullable()->default(null);
             $table->timestamp('expire_date')->nullable()->default(null);
             $table->string('token')->index('clients_token_index');

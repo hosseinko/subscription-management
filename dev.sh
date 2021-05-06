@@ -25,6 +25,9 @@ docker-compose -p testapp restart
 elif [[ "$1" == 'logs' ]]; then
 docker-compose -p testapp logs -f --tail=100 php
 
+elif [[ "$1" == 'redis' ]]; then
+docker-compose -p testapp exec redis bash
+
 fi
 
 cd ../../

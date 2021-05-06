@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\ApplicationCredentialsNotFoundException;
+use App\Exceptions\HitRateLimitException;
+use App\Exceptions\InvalidApplicationCredentialsException;
+use App\Exceptions\PurchaseFailedException;
 use App\Exceptions\ResourceNotFoundException;
 use App\Libs\Logger;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -41,6 +45,10 @@ class Controller extends BaseController
                 break;
 
             case $exception instanceof ResourceNotFoundException:
+            case $exception instanceof PurchaseFailedException:
+            case $exception instanceof ApplicationCredentialsNotFoundException:
+            case $exception instanceof HitRateLimitException:
+            case $exception instanceof InvalidApplicationCredentialsException:
 
                 return response()->json([
                     'message' => $exception->getMessage()

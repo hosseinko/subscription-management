@@ -22,8 +22,12 @@ Route::group(['prefix' => 'v1/'], function () {
     Route::post('purchase', [SubscriptionController::class, 'purchase'])
          ->name('purchase');
 
-    Route::get('subscription/check', [SubscriptionController::class, 'checkSubscription'])
+    Route::get('subscription/check/{client_token}', [SubscriptionController::class, 'checkSubscription'])
+         ->whereAlphaNumeric('client_token')
          ->name('check-subscription');
+
+    Route::get('subscription/report', [SubscriptionController::class, 'getSubscriptionReport'])
+         ->name('get-report');
 
     Route::post('subscription/changed', [SubscriptionController::class, 'subscriptionChanged'])
          ->name('subscription-changed');
