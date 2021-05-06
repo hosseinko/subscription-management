@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Enums\OsTypes;
 use App\Enums\SubscriptionEvents;
 use App\Enums\SubscriptionStatus;
+use App\Libs\Logger;
 use App\Libs\Services\SubscriptionService;
+use Faker\Generator;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -134,8 +136,10 @@ class SubscriptionController extends Controller
         }
     }
 
-    public function subscriptionChanged()
+    public function subscriptionChanged(Generator $faker)
     {
+        $status = $faker->randomElement([200, 400, 500]);
 
+        return response()->json([], $status);
     }
 }

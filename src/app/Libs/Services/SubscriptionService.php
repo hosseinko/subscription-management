@@ -7,15 +7,20 @@ namespace App\Libs\Services;
 use App\Enums\ErrorCodes;
 use App\Enums\SubscriptionStatus;
 use App\Exceptions\ApplicationCredentialsNotFoundException;
+use App\Exceptions\HitRateLimitException;
 use App\Exceptions\InvalidApplicationCredentialsException;
+use App\Exceptions\NotifyExternalSystemException;
+use App\Jobs\RetryStatusCheck;
 use App\Libs\Core\ApplicationManager;
 use App\Libs\Core\DeviceManager;
 use App\Libs\Core\SubscriptionManager;
+use App\Libs\Market\MarketManager;
 use App\Libs\Market\MarketManagerFactory;
 use App\Libs\Token;
 use App\Models\Subscription;
 use App\Models\SubscriptionEvent;
 use Carbon\Carbon;
+use Http;
 
 class SubscriptionService extends AbstractBaseService
 {
@@ -66,7 +71,7 @@ class SubscriptionService extends AbstractBaseService
         $marketManager = MarketManagerFactory::make(
             $device->os,
             $application->market_credentials[$device->os]['username'],
-            $application->market_credentials[$device->os]['password'],
+            $application->market_credentials[$device->os]['password']
         );
 
         $response = $marketManager->purchase($receipt);
@@ -120,5 +125,62 @@ class SubscriptionService extends AbstractBaseService
         return true;
     }
 
+    public function checkSubscriptions($os)
+    {
+        $page    = 1;
+        $perPage = 1000;
 
+        $marketManager = MarketManagerFactory::make($os, null, null);
+
+        while ($rows = $this->subscriptionManager->getSubscriptionsByOs($os, $page, $perPage)) {
+            foreach ($rows as $row) {
+                try {
+                    $this->validateMarketCredentials($os, $row->application);
+
+                    $marketManager->setCredentials(
+                        $row->application->market_credentials[$os]['username'],
+                        $row->application->market_credentials[$os]['password']
+                    );
+
+                    $response = $marketManager->checkSubscription($row->receipt);
+
+                    if ($response['status'] == SubscriptionStatus::CANCELED) {
+                        $this->subscriptionManager->updateSubscription(
+                            $row->id,
+                            $row->receipt,
+                            SubscriptionStatus::CANCELED,
+                            null
+                        );
+                    }
+
+                    unset($response);
+                } catch (\Throwable $exception) {
+                    if ($exception instanceof HitRateLimitException) {
+                        RetryStatusCheck::dispatch($row)->onQueue($os . '_failed_check');
+                    }
+                }
+            }
+
+            $page++;
+        }
+    }
+
+    public function notifyExternalSystem($subscriptionStatus, $subscription)
+    {
+        $application = $subscription->application;
+        $device      = $subscription->device;
+
+        $response = Http::post($application->event_endpoint_url, [
+            'app_id'      => $application->uuid,
+            'device_id'   => $device->uuid,
+            'status'      => $subscriptionStatus,
+            'expire_date' => $subscriptionStatus != SubscriptionStatus::CANCELED ? $subscription->expire_date : null
+        ]);
+
+        if ($response->status() != 200) {
+            throw new NotifyExternalSystemException("failed", $response->status());
+        }
+
+        return true;
+    }
 }

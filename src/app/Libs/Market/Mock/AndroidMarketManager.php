@@ -14,8 +14,5 @@ class AndroidMarketManager extends AbstractMockMarketManager
         $this->endpoint = config('markets.adapter.urls.android.mock');
     }
 
-    public function checkSubscription($receipt)
-    {
-        // TODO: Implement checkSubscription() method.
-    }
+
 }

@@ -5,17 +5,23 @@ namespace App\Libs\Market\Mock;
 
 
 use App\Enums\MarketActions;
+use App\Enums\SubscriptionEvents;
+use App\Enums\SubscriptionStatus;
 use App\Exceptions\HitRateLimitException;
 use App\Exceptions\PurchaseFailedException;
 use App\Libs\Market\AbstractMarketManager;
 use Carbon\Carbon;
 use Http;
+use Faker\Generator as Faker;
 
 abstract class AbstractMockMarketManager extends AbstractMarketManager
 {
+    protected $faker;
+
     public function __construct($username, $password)
     {
         parent::__construct($username, $password);
+        $this->faker = app(Faker::class);
     }
 
     public function purchase($receipt)
@@ -24,37 +30,19 @@ abstract class AbstractMockMarketManager extends AbstractMarketManager
 
     }
 
+    public function checkSubscription($receipt)
+    {
+        return $this->sendRequest(MarketActions::CHECK, ['receipt' => $receipt]);
+    }
+
     public function sendRequest($action, $params)
     {
-        Http::fake([
-            config('markets.adapter.urls.android.mock') . '/*' => function () use ($params) {
-                $statusCode = $this->checkResponse($params['receipt']);
-
-                if ($statusCode == 200) {
-                    return Http::response([
-                        'status'      => true,
-                        'expire_date' => Carbon::now()->addMonth()->format('Y-m-d H:i:s')
-                    ], 200);
-                } else {
-                    return Http::response(['status' => false], $statusCode);
-                }
-            },
-            config('markets.adapter.urls.ios.mock') . '/*'     => function () use ($params) {
-                $statusCode = $this->checkResponse($params['receipt']);
-
-                if ($statusCode == 200) {
-                    return Http::response([
-                        'status'      => true,
-                        'expire_date' => Carbon::now()
-                                               ->addMonth()
-                                               ->addHours(6)
-                                               ->format('Y-m-d H:i:s')
-                    ], 200);
-                } else {
-                    return Http::response(['status' => false], $statusCode);
-                }
-            }
-        ]);
+        if ($action == MarketActions::PURCHASE) {
+            $configs = $this->getFakerConfigForPurchase($params);
+        } else {
+            $configs = $this->getFakerConfigForCheckResponse($params);
+        }
+        Http::fake($configs);
 
         $response = Http::withBasicAuth($this->username, $this->password)
                         ->post($this->endpoint . '/' . $action,
@@ -72,19 +60,70 @@ abstract class AbstractMockMarketManager extends AbstractMarketManager
         }
     }
 
-    public function checkResponse($receipt)
+    public function getFakerConfigForPurchase($params)
     {
-        if (!$this->purchaseIsValid($receipt)) {
-            return 503;
-        }
+        return [
+            config('markets.adapter.urls.android.mock') . '/*' => function () use ($params) {
+                $statusCode = $this->purchaseIsValid($params['receipt']) ? 503 : 200;
 
-        if ($this->hitRateLimit($receipt)) {
-            return 429;
-        }
+                if ($statusCode == 200) {
+                    return Http::response([
+                        'status'      => true,
+                        'expire_date' => Carbon::now()->addMonth()->format('Y-m-d H:i:s')
+                    ], 200);
+                } else {
+                    return Http::response(['status' => false], $statusCode);
+                }
+            },
+            config('markets.adapter.urls.ios.mock') . '/*'     => function () use ($params) {
+                $statusCode = $this->purchaseIsValid($params['receipt']) ? 503 : 200;
 
-        return 200;
+                if ($statusCode == 200) {
+                    return Http::response([
+                        'status'      => true,
+                        'expire_date' => Carbon::now()
+                                               ->addMonth()
+                                               ->addHours(6)
+                                               ->format('Y-m-d H:i:s')
+                    ], 200);
+                } else {
+                    return Http::response(['status' => false], $statusCode);
+                }
+            }
+        ];
     }
 
+    public function getFakerConfigForCheckResponse($params)
+    {
+        return [
+            config('markets.adapter.urls.android.mock') . '/*' => function () use ($params) {
+                $statusCode = $this->hitRateLimit($params['receipt']) ? 429 : 200;
+
+                if ($statusCode == 200) {
+                    return Http::response([
+                        'status' => $this->faker->randomElement(SubscriptionStatus::toArray())
+                    ], 200);
+                } else {
+                    return Http::response(['status' => false], $statusCode);
+                }
+            },
+            config('markets.adapter.urls.ios.mock') . '/*'     => function () use ($params) {
+                $statusCode = $this->hitRateLimit($params['receipt']) ? 429 : 200;
+
+                if ($statusCode == 200) {
+                    return Http::response([
+                        'status'      => true,
+                        'expire_date' => Carbon::now()
+                                               ->addMonth()
+                                               ->addHours(6)
+                                               ->format('Y-m-d H:i:s')
+                    ], 200);
+                } else {
+                    return Http::response(['status' => false], $statusCode);
+                }
+            }
+        ];
+    }
 
     public function purchaseIsValid($receipt)
     {

@@ -9,6 +9,8 @@ interface MarketManager
 
     public function __construct($username, $password);
 
+    public function setCredentials($username, $password);
+
     public function purchase($receipt);
 
     public function checkSubscription($receipt);

@@ -3,15 +3,16 @@
 
 namespace App\Libs\Core;
 
-
+use App\Enums\SubscriptionEvents;
 use App\Enums\SubscriptionStatus;
 use App\Events\SubscriptionCanceledEvent;
 use App\Events\SubscriptionRenewedEvent;
 use App\Events\SubscriptionStartedEvent;
-use App\Exceptions\ResourceNotFoundException;
+use App\Jobs\NotifyExternalUrl;
 use App\Libs\Repositories\Cache\ApplicationsCacheRepository;
 use App\Libs\Token;
 use App\Models\Subscription;
+use Carbon\Carbon;
 
 class SubscriptionManager extends AbstractBaseCore
 {
@@ -86,12 +87,32 @@ class SubscriptionManager extends AbstractBaseCore
 
         if ($previousStatus == null && $status == SubscriptionStatus::ACTIVE) {
             SubscriptionStartedEvent::dispatch($subscription);
+            NotifyExternalUrl::dispatch(SubscriptionEvents::STARTED, $subscription)->onQueue('notify_started');
         } else {
             if ($status == SubscriptionStatus::ACTIVE) {
                 SubscriptionRenewedEvent::dispatch($subscription);
+                NotifyExternalUrl::dispatch(SubscriptionEvents::RENEWED, $subscription)->onQueue('notify_renewed');
             } elseif ($status == SubscriptionStatus::CANCELED) {
                 SubscriptionCanceledEvent::dispatch($subscription);
+                NotifyExternalUrl::dispatch(SubscriptionEvents::CANCELED, $subscription)->onQueue('notify_canceled');
             }
         }
+    }
+
+    public function getSubscriptionsByOs($os, $page, $recordsPerPage)
+    {
+        $now = Carbon::now()->toDateTimeString();
+
+        return $this->subscriptionModel->with(['application', 'device'])
+                                       ->whereHas('device', function ($query) use ($os) {
+                                           return $query->where('os', $os);
+                                       })
+                                       ->whereNotNull('subscription_status')
+                                       ->whereDate('expire_date', '<', $now)
+                                       ->where('subscription_status', '!=', SubscriptionStatus::CANCELED)
+                                       ->orderBy('id', 'ASC')
+                                       ->limit($recordsPerPage)
+                                       ->offset(ceil(($page - 1) / $recordsPerPage))
+                                       ->get();
     }
 }
