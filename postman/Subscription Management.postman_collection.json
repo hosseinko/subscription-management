@@ -1,0 +1,106 @@
+{
+  "info": {
+    "_postman_id": "8cf5da85-e74c-4d57-9ed7-0f6b5b33e3c4",
+    "name": "Subscription Management",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"uID\": \"{{ios_device_uuid}}\",\n    \"appID\": \"{{app_uuid}}\",\n    \"language\": \"{{lang}}\",\n    \"os\": \"ios\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/{{version}}/register",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "{{version}}",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Purchase",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"client-token\":\"{{client_token}}\",\n    \"receipt\":\"{{receipt}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/{{version}}/purchase",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "{{version}}",
+            "purchase"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Check Subscription",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/{{version}}/subscription/check/{{client_token}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "{{version}}",
+            "subscription",
+            "check",
+            "{{client_token}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Generate Report",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/{{version}}/subscription/report",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "{{version}}",
+            "subscription",
+            "report"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
