@@ -3,11 +3,18 @@
 
 namespace App\Libs;
 
-
+/**
+ * Class Token
+ * @package App\Libs
+ */
 class Token extends BaseLib
 {
 
-    public function generateToken($length = 32)
+    /**
+     * @param int $length
+     * @return string
+     */
+    public function generateToken($length = 32): string
     {
         $allowedCharacters = "abcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 

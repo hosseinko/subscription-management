@@ -5,36 +5,64 @@ namespace App\Libs\Market\Mock;
 
 
 use App\Enums\MarketActions;
-use App\Enums\SubscriptionEvents;
 use App\Enums\SubscriptionStatus;
 use App\Exceptions\HitRateLimitException;
 use App\Exceptions\PurchaseFailedException;
 use App\Libs\Market\AbstractMarketManager;
 use Carbon\Carbon;
+use Closure;
 use Http;
 use Faker\Generator as Faker;
 
+/**
+ * Class AbstractMockMarketManager
+ * @package App\Libs\Market\Mock
+ */
 abstract class AbstractMockMarketManager extends AbstractMarketManager
 {
     protected $faker;
 
+    /**
+     * AbstractMockMarketManager constructor.
+     * @param $username
+     * @param $password
+     */
     public function __construct($username, $password)
     {
         parent::__construct($username, $password);
         $this->faker = app(Faker::class);
     }
 
+    /**
+     * @param $receipt
+     * @return mixed
+     * @throws HitRateLimitException
+     * @throws PurchaseFailedException
+     */
     public function purchase($receipt)
     {
         return $this->sendRequest(MarketActions::PURCHASE, ['receipt' => $receipt]);
 
     }
 
+    /**
+     * @param $receipt
+     * @return mixed
+     * @throws HitRateLimitException
+     * @throws PurchaseFailedException
+     */
     public function checkSubscription($receipt)
     {
         return $this->sendRequest(MarketActions::CHECK, ['receipt' => $receipt]);
     }
 
+    /**
+     * @param $action
+     * @param $params
+     * @return mixed
+     * @throws HitRateLimitException
+     * @throws PurchaseFailedException
+     */
     public function sendRequest($action, $params)
     {
         if ($action == MarketActions::PURCHASE) {
@@ -60,7 +88,11 @@ abstract class AbstractMockMarketManager extends AbstractMarketManager
         }
     }
 
-    public function getFakerConfigForPurchase($params)
+    /**
+     * @param $params
+     * @return Closure[]
+     */
+    public function getFakerConfigForPurchase($params): array
     {
         return [
             config('markets.adapter.urls.android.mock') . '/*' => function () use ($params) {
@@ -93,7 +125,11 @@ abstract class AbstractMockMarketManager extends AbstractMarketManager
         ];
     }
 
-    public function getFakerConfigForCheckResponse($params)
+    /**
+     * @param $params
+     * @return Closure[]
+     */
+    public function getFakerConfigForCheckResponse($params): array
     {
         return [
             config('markets.adapter.urls.android.mock') . '/*' => function () use ($params) {
@@ -125,7 +161,11 @@ abstract class AbstractMockMarketManager extends AbstractMarketManager
         ];
     }
 
-    public function purchaseIsValid($receipt)
+    /**
+     * @param $receipt
+     * @return bool
+     */
+    public function purchaseIsValid($receipt): bool
     {
         $receiptLastCharacter = substr($receipt, -1);
         if (is_numeric($receiptLastCharacter) && (int)$receiptLastCharacter % 2 != 0) {
@@ -135,7 +175,11 @@ abstract class AbstractMockMarketManager extends AbstractMarketManager
         return false;
     }
 
-    public function hitRateLimit($receipt)
+    /**
+     * @param $receipt
+     * @return bool
+     */
+    public function hitRateLimit($receipt): bool
     {
         $receiptLastCharacter = substr($receipt, -1);
         if (is_numeric($receiptLastCharacter) && (int)$receiptLastCharacter % 6 == 0) {
@@ -144,5 +188,4 @@ abstract class AbstractMockMarketManager extends AbstractMarketManager
 
         return false;
     }
-
 }

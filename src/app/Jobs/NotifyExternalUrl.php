@@ -2,20 +2,23 @@
 
 namespace App\Jobs;
 
+use App\Exceptions\NotifyExternalSystemException;
 use App\Libs\Services\SubscriptionService;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Class NotifyExternalUrl
+ * @package App\Jobs
+ */
 class NotifyExternalUrl implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     private $subscription;
-
     private $eventType;
 
     /**
@@ -30,9 +33,8 @@ class NotifyExternalUrl implements ShouldQueue
     }
 
     /**
-     * Execute the job.
-     *
-     * @return void
+     * @param SubscriptionService $subscriptionService
+     * @throws NotifyExternalSystemException
      */
     public function handle(SubscriptionService $subscriptionService)
     {

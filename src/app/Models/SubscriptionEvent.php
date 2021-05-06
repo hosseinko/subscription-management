@@ -5,6 +5,10 @@ namespace App\Models;
 use App\Objects\Reports\EventsReport;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class SubscriptionEvent
+ * @package App\Models
+ */
 class SubscriptionEvent extends Model
 {
     protected $casts = [
@@ -23,6 +27,12 @@ class SubscriptionEvent extends Model
         return $this->belongsTo(Subscription::class);
     }
 
+    /**
+     * @param $page
+     * @param $perPage
+     * @param $filters
+     * @return EventsReport
+     */
     public function generateReport($page, $perPage, $filters)
     {
         $query = $this->leftJoin('subscriptions', 'subscription_events.subscription_id', '=', 'subscriptions.id')

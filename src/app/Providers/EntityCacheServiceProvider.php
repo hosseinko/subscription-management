@@ -2,9 +2,9 @@
 
 namespace App\Providers;
 
-use App\Libs\Repositories\Cache\ApplicationsCacheRepository;
+use App\Libs\Repositories\Cache\CacheRepository;
 use App\Libs\Repositories\Cache\DevicesCacheRepository;
-use App\Libs\Repositories\Cache\Redis\RedisApplicationCacheRepository;
+use App\Libs\Repositories\Cache\Redis\RedisCacheRepository;
 use App\Libs\Repositories\Cache\Redis\RedisDevicesCacheRepository;
 use Illuminate\Support\ServiceProvider;
 
@@ -17,8 +17,7 @@ class EntityCacheServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->bind(ApplicationsCacheRepository::class, RedisApplicationCacheRepository::class);
-        $this->app->bind(DevicesCacheRepository::class, RedisDevicesCacheRepository::class);
+        $this->app->bind(CacheRepository::class, RedisCacheRepository::class);
     }
 
     /**

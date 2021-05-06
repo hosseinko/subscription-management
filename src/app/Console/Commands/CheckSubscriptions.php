@@ -6,6 +6,10 @@ use App\Enums\OsTypes;
 use App\Libs\Services\SubscriptionService;
 use Illuminate\Console\Command;
 
+/**
+ * Class CheckSubscriptions
+ * @package App\Console\Commands
+ */
 class CheckSubscriptions extends Command
 {
     /**
@@ -41,7 +45,7 @@ class CheckSubscriptions extends Command
      *
      * @return int
      */
-    public function handle()
+    public function handle(): int
     {
         $os = $this->argument('os');
         if (!in_array($os, OsTypes::toArray())) {
@@ -49,10 +53,8 @@ class CheckSubscriptions extends Command
             exit(0);
         }
 
-        $this->subscriptionService->checkSubscriptions($os);
-
-        /*$lockFiles = [];
-        if(!$this->lock($os, $lockFiles)){
+        $lockFiles = [];
+        if (!$this->lock($os, $lockFiles)) {
             $this->info('Another instance is running');
             exit(0);
         }
@@ -61,15 +63,22 @@ class CheckSubscriptions extends Command
             $this->subscriptionService->checkSubscriptions($os);
 
             $this->line('Subscriptions updated successfully');
-        } catch(\Throwable $exception){
+        } catch (\Throwable $exception) {
             $this->error($exception->getMessage());
         }
 
-        $this->lock($os, $lockFiles, false);*/
+        $this->lock($os, $lockFiles, false);
+
+        return 0;
     }
 
-
-    private function lock($action, &$fp, $lock = true)
+    /**
+     * @param $action
+     * @param $fp
+     * @param bool $lock
+     * @return bool
+     */
+    private function lock($action, &$fp, bool $lock = true): bool
     {
         $lockFilePath = storage_path('locks');
         if (!file_exists($lockFilePath)) {

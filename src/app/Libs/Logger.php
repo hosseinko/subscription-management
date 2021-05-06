@@ -3,7 +3,6 @@
 
 namespace App\Libs;
 
-use App\Libs\BaseLib;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Throwable;

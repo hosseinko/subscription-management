@@ -6,6 +6,10 @@ use App\Exceptions\ResourceNotFoundException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class Application
+ * @package App\Models
+ */
 class Application extends Model
 {
     use HasFactory;
@@ -28,6 +32,11 @@ class Application extends Model
         return $this->hasMany(Subscription::class);
     }
 
+    /**
+     * @param $uuid
+     * @return mixed
+     * @throws ResourceNotFoundException
+     */
     public function getApplicationByUuid($uuid)
     {
         $application = $this->where('uuid', $uuid)->first();

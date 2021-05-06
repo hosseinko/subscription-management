@@ -8,20 +8,33 @@ use App\Enums\SubscriptionStatus;
 use App\Libs\Logger;
 use App\Libs\Services\SubscriptionService;
 use Faker\Generator;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
+/**
+ * Class SubscriptionController
+ * @package App\Http\Controllers
+ */
 class SubscriptionController extends Controller
 {
 
     private $subscriptionService;
 
+    /**
+     * SubscriptionController constructor.
+     * @param SubscriptionService $subscriptionService
+     */
     public function __construct(SubscriptionService $subscriptionService)
     {
         $this->subscriptionService = $subscriptionService;
     }
 
-    public function register(Request $request)
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function register(Request $request): JsonResponse
     {
         try {
             $this->validate($request, [
@@ -52,7 +65,11 @@ class SubscriptionController extends Controller
         }
     }
 
-    public function purchase(Request $request)
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function purchase(Request $request): JsonResponse
     {
         try {
 
@@ -80,7 +97,11 @@ class SubscriptionController extends Controller
         }
     }
 
-    public function getSubscriptionReport(Request $request)
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getSubscriptionReport(Request $request): JsonResponse
     {
         try {
             $this->validate($request, [
@@ -119,7 +140,11 @@ class SubscriptionController extends Controller
 
     }
 
-    public function checkSubscription($clientToken)
+    /**
+     * @param $clientToken
+     * @return JsonResponse
+     */
+    public function checkSubscription($clientToken): JsonResponse
     {
         try {
             $result = $this->subscriptionService->checkSubscription($clientToken);
@@ -136,7 +161,11 @@ class SubscriptionController extends Controller
         }
     }
 
-    public function subscriptionChanged(Generator $faker)
+    /**
+     * @param Generator $faker
+     * @return JsonResponse
+     */
+    public function subscriptionChanged(Generator $faker): JsonResponse
     {
         $status = $faker->randomElement([200, 400, 500]);
 

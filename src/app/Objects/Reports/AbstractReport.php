@@ -3,7 +3,10 @@
 
 namespace App\Objects\Reports;
 
-
+/**
+ * Class AbstractReport
+ * @package App\Objects\Reports
+ */
 class AbstractReport
 {
     public    $data;
@@ -12,6 +15,13 @@ class AbstractReport
     public    $currentPage;
     protected $dataFieldName = 'data';
 
+    /**
+     * AbstractReport constructor.
+     * @param $data
+     * @param $totalRecords
+     * @param $currentPage
+     * @param $recordsPerPage
+     */
     public function __construct($data, $totalRecords, $currentPage, $recordsPerPage)
     {
         $this->data         = $data;
@@ -20,7 +30,10 @@ class AbstractReport
         $this->currentPage  = $currentPage;
     }
 
-    public function toArray()
+    /**
+     * @return array
+     */
+    public function toArray(): array
     {
         return [
             $this->dataFieldName => $this->data,

@@ -5,20 +5,35 @@ namespace App\Libs\Core;
 
 
 use App\Exceptions\ResourceNotFoundException;
-use App\Libs\Repositories\Cache\ApplicationsCacheRepository;
+use App\Libs\Repositories\Cache\CacheRepository;
 use App\Models\Device;
 
+/**
+ * Class DeviceManager
+ * @package App\Libs\Core
+ */
 class DeviceManager extends AbstractBaseCore
 {
     private $devicesModel;
     private $cacheRepository;
 
-    public function __construct(Device $devicesModel, ApplicationsCacheRepository $applicationsCacheRepository)
+    /**
+     * DeviceManager constructor.
+     * @param Device $devicesModel
+     * @param CacheRepository $applicationsCacheRepository
+     */
+    public function __construct(Device $devicesModel, CacheRepository $applicationsCacheRepository)
     {
         $this->devicesModel    = $devicesModel;
         $this->cacheRepository = $applicationsCacheRepository;
     }
 
+    /**
+     * @param $deviceUuid
+     * @param $os
+     * @param $lang
+     * @return mixed
+     */
     public function firstOrCreateDevice($deviceUuid, $os, $lang)
     {
         $cacheKey = "device:$deviceUuid";
@@ -41,6 +56,11 @@ class DeviceManager extends AbstractBaseCore
         return $device;
     }
 
+    /**
+     * @param $deviceId
+     * @return mixed
+     * @throws ResourceNotFoundException
+     */
     public function getDeviceById($deviceId)
     {
         $device = $this->devicesModel->find($deviceId);

@@ -8,21 +8,32 @@ use App\Enums\SubscriptionStatus;
 use App\Events\SubscriptionCanceledEvent;
 use App\Events\SubscriptionRenewedEvent;
 use App\Events\SubscriptionStartedEvent;
+use App\Exceptions\ResourceNotFoundException;
 use App\Jobs\NotifyExternalUrl;
-use App\Libs\Repositories\Cache\ApplicationsCacheRepository;
+use App\Libs\Repositories\Cache\CacheRepository;
 use App\Libs\Token;
 use App\Models\Subscription;
 use Carbon\Carbon;
 
+/**
+ * Class SubscriptionManager
+ * @package App\Libs\Core
+ */
 class SubscriptionManager extends AbstractBaseCore
 {
     private $subscriptionModel;
     private $cacheRepository;
     private $tokenObj;
 
+    /**
+     * SubscriptionManager constructor.
+     * @param Subscription $subscriptionModel
+     * @param CacheRepository $applicationsCacheRepository
+     * @param Token $tokenObj
+     */
     public function __construct(
         Subscription $subscriptionModel,
-        ApplicationsCacheRepository $applicationsCacheRepository,
+        CacheRepository $applicationsCacheRepository,
         Token $tokenObj
     ) {
         $this->subscriptionModel = $subscriptionModel;
@@ -30,6 +41,11 @@ class SubscriptionManager extends AbstractBaseCore
         $this->tokenObj          = $tokenObj;
     }
 
+    /**
+     * @param $applicationId
+     * @param $deviceId
+     * @return string|false
+     */
     public function getSubscriptionToken($applicationId, $deviceId)
     {
         $cacheKey = "token:$deviceId:$applicationId";
@@ -46,6 +62,11 @@ class SubscriptionManager extends AbstractBaseCore
         return false;
     }
 
+    /**
+     * @param $applicationId
+     * @param $deviceId
+     * @return mixed
+     */
     public function createSubscription($applicationId, $deviceId)
     {
         $subscription = $this->subscriptionModel->create([
@@ -60,6 +81,11 @@ class SubscriptionManager extends AbstractBaseCore
         return $subscription;
     }
 
+    /**
+     * @param $clientToken
+     * @return mixed
+     * @throws ResourceNotFoundException
+     */
     public function getSubscriptionByClientToken($clientToken)
     {
         $cacheKey = "subscription:$clientToken";
@@ -73,6 +99,13 @@ class SubscriptionManager extends AbstractBaseCore
         return $subscription;
     }
 
+    /**
+     * @param $subscriptionId
+     * @param $receipt
+     * @param $status
+     * @param $expireDate
+     * @throws ResourceNotFoundException
+     */
     public function updateSubscription($subscriptionId, $receipt, $status, $expireDate)
     {
         $subscription   = $this->subscriptionModel->getSubscriptionById($subscriptionId);
@@ -99,6 +132,12 @@ class SubscriptionManager extends AbstractBaseCore
         }
     }
 
+    /**
+     * @param $os
+     * @param $page
+     * @param $recordsPerPage
+     * @return \Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
+     */
     public function getSubscriptionsByOs($os, $page, $recordsPerPage)
     {
         $now = Carbon::now()->toDateTimeString();

@@ -10,32 +10,40 @@ use App\Exceptions\ApplicationCredentialsNotFoundException;
 use App\Exceptions\HitRateLimitException;
 use App\Exceptions\InvalidApplicationCredentialsException;
 use App\Exceptions\NotifyExternalSystemException;
+use App\Exceptions\ResourceNotFoundException;
 use App\Jobs\RetryStatusCheck;
 use App\Libs\Core\ApplicationManager;
 use App\Libs\Core\DeviceManager;
 use App\Libs\Core\SubscriptionManager;
-use App\Libs\Market\MarketManager;
 use App\Libs\Market\MarketManagerFactory;
-use App\Libs\Token;
-use App\Models\Subscription;
 use App\Models\SubscriptionEvent;
+use App\Objects\Reports\EventsReport;
 use Carbon\Carbon;
 use Http;
 
+/**
+ * Class SubscriptionService
+ * @package App\Libs\Services
+ */
 class SubscriptionService extends AbstractBaseService
 {
     private $applicationManager;
     private $deviceManager;
     private $subscriptionManager;
-
     private $subscriptionEventsModel;
 
+    /**
+     * SubscriptionService constructor.
+     * @param ApplicationManager $applicationManager
+     * @param DeviceManager $deviceManager
+     * @param SubscriptionManager $subscriptionManager
+     * @param SubscriptionEvent $subscriptionEventsModel
+     */
     public function __construct(
         ApplicationManager $applicationManager,
         DeviceManager $deviceManager,
         SubscriptionManager $subscriptionManager,
         SubscriptionEvent $subscriptionEventsModel,
-        Token $tokenManager
     ) {
         $this->applicationManager  = $applicationManager;
         $this->deviceManager       = $deviceManager;
@@ -44,6 +52,14 @@ class SubscriptionService extends AbstractBaseService
         $this->subscriptionEventsModel = $subscriptionEventsModel;
     }
 
+    /**
+     * @param $appUuid
+     * @param $deviceUuid
+     * @param $os
+     * @param $lang
+     * @return false|string
+     * @throws ResourceNotFoundException
+     */
     public function register($appUuid, $deviceUuid, $os, $lang)
     {
         $application = $this->applicationManager->getApplicationByUuid($appUuid);
@@ -59,6 +75,14 @@ class SubscriptionService extends AbstractBaseService
         return $subscription->token;
     }
 
+    /**
+     * @param $clientToken
+     * @param $receipt
+     * @return mixed
+     * @throws ApplicationCredentialsNotFoundException
+     * @throws InvalidApplicationCredentialsException
+     * @throws ResourceNotFoundException
+     */
     public function purchase($clientToken, $receipt)
     {
         $subscription = $this->subscriptionManager->getSubscriptionByClientToken($clientToken);
@@ -84,7 +108,12 @@ class SubscriptionService extends AbstractBaseService
         return $response['expire_date'];
     }
 
-    public function checkSubscription($clientToken)
+    /**
+     * @param $clientToken
+     * @return array
+     * @throws ResourceNotFoundException
+     */
+    public function checkSubscription($clientToken): array
     {
         $result       = ['status' => '', 'expire_date' => null];
         $subscription = $this->subscriptionManager->getSubscriptionByClientToken($clientToken);
@@ -103,12 +132,25 @@ class SubscriptionService extends AbstractBaseService
         return $result;
     }
 
-    public function generateEventsReport($page, $perPage, $filters)
+    /**
+     * @param $page
+     * @param $perPage
+     * @param $filters
+     * @return EventsReport
+     */
+    public function generateEventsReport($page, $perPage, $filters): EventsReport
     {
         return $this->subscriptionEventsModel->generateReport($page, $perPage, $filters);
     }
 
-    private function validateMarketCredentials($osType, $application)
+    /**
+     * @param $osType
+     * @param $application
+     * @return void
+     * @throws ApplicationCredentialsNotFoundException
+     * @throws InvalidApplicationCredentialsException
+     */
+    private function validateMarketCredentials($osType, $application): void
     {
         $marketCredentials = $application->market_credentials;
 
@@ -122,9 +164,11 @@ class SubscriptionService extends AbstractBaseService
                 500);
         }
 
-        return true;
     }
 
+    /**
+     * @param $os
+     */
     public function checkSubscriptions($os)
     {
         $page    = 1;
@@ -165,7 +209,13 @@ class SubscriptionService extends AbstractBaseService
         }
     }
 
-    public function notifyExternalSystem($subscriptionStatus, $subscription)
+    /**
+     * @param $subscriptionStatus
+     * @param $subscription
+     * @return bool
+     * @throws NotifyExternalSystemException
+     */
+    public function notifyExternalSystem($subscriptionStatus, $subscription): bool
     {
         $application = $subscription->application;
         $device      = $subscription->device;

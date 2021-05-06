@@ -3,7 +3,10 @@
 
 namespace App\Libs\Market;
 
-
+/**
+ * Class MarketManagerFactory
+ * @package App\Libs\Market
+ */
 class MarketManagerFactory
 {
 

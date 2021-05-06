@@ -5,6 +5,10 @@ namespace App\Models;
 use App\Exceptions\ResourceNotFoundException;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class Subscription
+ * @package App\Models
+ */
 class Subscription extends Model
 {
     protected $casts = [
@@ -37,6 +41,11 @@ class Subscription extends Model
         return $this->hasMany(SubscriptionEvent::class);
     }
 
+    /**
+     * @param $appId
+     * @param $deviceId
+     * @return mixed
+     */
     public function alreadyRegistered($appId, $deviceId)
     {
         return $this->where('application_id', $appId)
@@ -44,6 +53,11 @@ class Subscription extends Model
                     ->first();
     }
 
+    /**
+     * @param $clientToken
+     * @return mixed
+     * @throws ResourceNotFoundException
+     */
     public function getSubscriptionByClientToken($clientToken)
     {
         $subscription = $this->where('token', $clientToken)->first();
@@ -54,6 +68,11 @@ class Subscription extends Model
         return $subscription;
     }
 
+    /**
+     * @param $subscriptionId
+     * @return mixed
+     * @throws ResourceNotFoundException
+     */
     public function getSubscriptionById($subscriptionId)
     {
         $subscription = $this->find($subscriptionId);

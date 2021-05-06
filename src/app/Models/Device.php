@@ -4,6 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class Device
+ * @package App\Models
+ */
 class Device extends Model
 {
     protected $casts = [
