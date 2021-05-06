@@ -20,6 +20,7 @@ use App\Models\SubscriptionEvent;
 use App\Objects\Reports\EventsReport;
 use Carbon\Carbon;
 use Http;
+use Throwable;
 
 /**
  * Class SubscriptionService
@@ -43,7 +44,7 @@ class SubscriptionService extends AbstractBaseService
         ApplicationManager $applicationManager,
         DeviceManager $deviceManager,
         SubscriptionManager $subscriptionManager,
-        SubscriptionEvent $subscriptionEventsModel,
+        SubscriptionEvent $subscriptionEventsModel
     ) {
         $this->applicationManager  = $applicationManager;
         $this->deviceManager       = $deviceManager;
@@ -81,7 +82,7 @@ class SubscriptionService extends AbstractBaseService
      * @return mixed
      * @throws ApplicationCredentialsNotFoundException
      * @throws InvalidApplicationCredentialsException
-     * @throws ResourceNotFoundException
+     * @throws ResourceNotFoundException|Throwable
      */
     public function purchase($clientToken, $receipt)
     {
@@ -198,7 +199,7 @@ class SubscriptionService extends AbstractBaseService
                     }
 
                     unset($response);
-                } catch (\Throwable $exception) {
+                } catch (Throwable $exception) {
                     if ($exception instanceof HitRateLimitException) {
                         RetryStatusCheck::dispatch($row)->onQueue($os . '_failed_check');
                     }

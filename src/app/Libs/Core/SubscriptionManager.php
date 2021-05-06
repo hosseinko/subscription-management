@@ -14,6 +14,8 @@ use App\Libs\Repositories\Cache\CacheRepository;
 use App\Libs\Token;
 use App\Models\Subscription;
 use Carbon\Carbon;
+use DB;
+use Throwable;
 
 /**
  * Class SubscriptionManager
@@ -105,9 +107,12 @@ class SubscriptionManager extends AbstractBaseCore
      * @param $status
      * @param $expireDate
      * @throws ResourceNotFoundException
+     * @throws Throwable
      */
     public function updateSubscription($subscriptionId, $receipt, $status, $expireDate)
     {
+        DB::beginTransaction();
+
         $subscription   = $this->subscriptionModel->getSubscriptionById($subscriptionId);
         $previousStatus = $subscription->status;
 
@@ -118,16 +123,21 @@ class SubscriptionManager extends AbstractBaseCore
 
         $this->cacheRepository->store("subscription:{$subscription->token}", json_encode($subscription->toArray()));
 
+        DB::commit();
+
         if ($previousStatus == null && $status == SubscriptionStatus::ACTIVE) {
             SubscriptionStartedEvent::dispatch($subscription);
-            NotifyExternalUrl::dispatch(SubscriptionEvents::STARTED, $subscription)->onQueue('notify_started');
+            NotifyExternalUrl::dispatch(SubscriptionEvents::STARTED, $subscription)
+                             ->onQueue('notify_started');
         } else {
             if ($status == SubscriptionStatus::ACTIVE) {
                 SubscriptionRenewedEvent::dispatch($subscription);
-                NotifyExternalUrl::dispatch(SubscriptionEvents::RENEWED, $subscription)->onQueue('notify_renewed');
+                NotifyExternalUrl::dispatch(SubscriptionEvents::RENEWED, $subscription)
+                                 ->onQueue('notify_renewed');
             } elseif ($status == SubscriptionStatus::CANCELED) {
                 SubscriptionCanceledEvent::dispatch($subscription);
-                NotifyExternalUrl::dispatch(SubscriptionEvents::CANCELED, $subscription)->onQueue('notify_canceled');
+                NotifyExternalUrl::dispatch(SubscriptionEvents::CANCELED, $subscription)
+                                 ->onQueue('notify_canceled');
             }
         }
     }
