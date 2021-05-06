@@ -25,6 +25,11 @@ To install and run this project take the following steps:
 * Api base url will be http://localhost:6001
 * You can access phpmyadmin to see database and tables using http://localhost:6002
 
+## Resources
+
+* Postman collection is located [here](http://https://github.com/hosseinko/subscription-management/tree/master/postman/)
+* Database schema is located [here](http://https://github.com/hosseinko/subscription-management/tree/master/schema/)
+
 ## Further reading
 
 * All parts of the application are designed and implemented as required
