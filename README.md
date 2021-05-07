@@ -27,8 +27,8 @@ To install and run this project take the following steps:
 
 ## Resources
 
-* Postman collection is located [here](http://https://github.com/hosseinko/subscription-management/tree/master/postman/)
-* Database schema is located [here](http://https://github.com/hosseinko/subscription-management/tree/master/schema/)
+* Postman collection is located [here](https://github.com/hosseinko/subscription-management/tree/master/postman)
+* Database schema is located [here](https://github.com/hosseinko/subscription-management/tree/master/schema)
 
 ## Further reading
 
